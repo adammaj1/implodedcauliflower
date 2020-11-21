@@ -13,6 +13,11 @@ See:
 
 
 
+# Files
+* [d.c ](./src/d.c) - c console program
+* [g.sh](./src/g.sh) - bash script for conversion ( from pgm to png ) and resizing ( downscalling) using Image Magic
+
+
 # technical notes
 
 
