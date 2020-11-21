@@ -3,36 +3,45 @@ Imploded cauliflower - is a Julia set for c=1/4+epsilon with epsilon >0.
 How many different ways are there to show such set ?
 
 
+
+# Images
 See:
 * [images in commons category](https://commons.wikimedia.org/wiki/Category:Imploded_cauliflower)
 
 
+## dynamic plane = z plane
 
-![](./images/1.png "description") 
-![](./images/2.png "description") 
-![](./images/3.png "description") 
-![](./images/4.png "description") 
-![](./images/5.png "description") 
-![](./images/6.png "description") 
-![](./images/7.png "description") 
-![](./images/8.png "description") 
-![](./images/9.png "description") 
-![](./images/10.png "description") 
-
-![](./images/11.png "description") 
-![](./images/12.png "description") 
-![](./images/13.png "description") 
-![](./images/14.png "description") 
-![](./images/15.png "description") 
-![](./images/16.png "description") 
-![](./images/17.png "description") 
-![](./images/18.png "description") 
-![](./images/19.png "description") 
-![](./images/20.png "description") 
+![](./images/1.png "boundary using DEM/J") 
+![](./images/2.png "BD/J") 
+![](./images/3.png "boundaries of BD/J") 
+![](./images/4.png "MBD/J") 
+![](./images/5.png "boundaries of MBD/J") 
 
 
-![](./images/21.png "description") 
-![](./images/22.png "description") 
+![](./images/6.png "LSM/J") 
+![](./images/7.png "boundaries of LSM/J") 
+![](./images/8.png "LSM + boundaries of LSM/J")
+![](./images/9.png "boundaries of LSM/J and MBD") 
+![](./images/10.png "Unknown : boundary and slow dynamics") 
+![](./images/11.png "SAC/J + DEM/J") 
+![](./images/12.png "DLD/J + boundary by DEM") 
+
+
+## Inverted plane  = w plane  = 1/z plane 
+
+![](./images/13.png "boundary using DEM/J inv") 
+![](./images/14.png "BD/J inverted") 
+![](./images/15.png "boundaries of BD/J inv") 
+![](./images/16.png "SAC/J + DEM/J inverted") 
+![](./images/17.png "LSM/J inv") 
+![](./images/18.png "boundaries of LSM/J inv") 
+![](./images/19.png "LSM + boundaries of LSM/J inv") 
+
+## test images
+
+![](./images/20.png "boundary using DEM/J and first quadrant") 
+![](./images/21.png "W Window On Z Window") 
+![](./images/22.png "Z Window On W Window") 
 
 
 
