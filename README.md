@@ -49,7 +49,8 @@ See:
 
 
 # Files
-* [d.c ](./src/d.c) - c console program
+* [d.c ](./src/d.c) - c console program for creating pgm images
+* [i.c](./src/i.c) - c console program for testing functions from the main program (d.c file). Prints info about point z  
 * [g.sh](./src/g.sh) - bash script for conversion ( from pgm to png ) and resizing ( downscalling) using Image Magic
 
 
