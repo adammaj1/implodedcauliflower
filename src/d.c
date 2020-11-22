@@ -71,7 +71,7 @@ sys	0m0,161s
 #include <stdlib.h>		// malloc
 #include <string.h>		// strcat
 #include <math.h>		// M_PI; needs -lm also
-#include <complex.h>
+#include <complex.h> 		// complex numbers : https://stackoverflow.com/questions/6418807/how-to-work-with-complex-numbers-in-c
 #include <omp.h>		// OpenMP
 
 /* --------------------------------- global variables and consts ------------------------------------------------------------ */
@@ -89,7 +89,7 @@ static unsigned int iWidth;	// horizontal dimension of array
 static unsigned int iyMin = 0;	// Indexes of array starts from 0 not 1
 static unsigned int iyMax;	//
 
-static unsigned int iHeight = 1000;	//  
+static unsigned int iHeight = 5000;	//  
 // The size of array has to be a positive constant integer 
 static unsigned int iSize;	// = iWidth*iHeight; 
 
@@ -147,14 +147,15 @@ double complex c;		// parameter of function fc(z)=z^2 + c
 
 
 static unsigned long int iterMax = 1000000;	//iHeight*100;
-unsigned long int iterMax_LSM = 255;
+const long int iterMax_LSM = 255;
+const int iterMax_DLD = 200; // N in wiki = fixed number : maximal number of iterations
 
 
 double ER = 200.0;		// EscapeRadius for bailout test 
 double EscapeRadius=1000000; // = ER big !!!!
 double ER_LSM ; // see GiveER_LSM  // 27.764 =  manually find value such that level curves of escape time cross critical point and it's  preimages
 double ER_DLD ; // see GiveER_LSM  // 27.764 =  manually find value such that level curves of escape time cross critical point and it's  preimages
-
+double ER_NP = 100.0; 
 
 // SAC/J
 double lnER; // ln(ER)
@@ -167,7 +168,7 @@ double distanceMax; //distanceMax = BoundaryWidth*PixelWidth;
 
 
 //  ------------- DLD  ----------------------
-const int N = 20;		// fixed number : maximal number of iterations
+
 double p = 0.180; //0.01444322;		//
 // DLD colors
 //double me = 1.0;
@@ -277,6 +278,7 @@ int SetZPlane(complex double center, double radius, double a_ratio){
 // z escapes when 
 // abs(z)> ER or cabs2(z)> ER2 
 // https://en.wikibooks.org/wiki/Fractals/Iterations_in_the_complex_plane/Julia_set#Boolean_Escape_time
+// this function is not used !!!! dead code 
 
 int Escapes(complex double z){
  // here target set (trap) is the exterior  circle with radsius = ER ( EscapeRadius) 
@@ -318,7 +320,7 @@ int ComputeBoundaries(unsigned char S[], unsigned char D[])
   // boundaries are in D  array ( global var )
  
   // clear D array
-  memset(D, iColorOfExterior, iSize*sizeof(*D)); // for heap-allocated arrays, where N is the number of elements = FillArrayWithColor(D , iColorOfExterior);
+  memset(D, iColorOfExterior, iSize*sizeof(*D)); // 
  
   // printf(" find boundaries in S array using  Sobel filter\n");   
 #pragma omp parallel for schedule(dynamic) private(i,iY,iX,Gv,Gh,G) shared(iyMax,ixMax)
@@ -348,7 +350,7 @@ int CopyBoundaries(unsigned char S[],  unsigned char D[])
   unsigned int i; /* index of 1D array  */
  
  
-  //printf("copy boundaries from S array to D array \n");
+  fprintf(stderr, "copy boundaries from S array to D array \n");
   for(iY=1;iY<iyMax-1;++iY)
     for(iX=1;iX<ixMax-1;++iX)
       {i= Give_i(iX,iY); if (S[i]==0) D[i]=0;}
@@ -709,7 +711,7 @@ int DrawImageOfDEMJ_inv (unsigned char A[])
 {
   unsigned int ix, iy;		// pixel coordinate 
 
-  	fprintf(stderr, "compute image DEM\n");
+  	fprintf(stderr, "compute image DEM inv\n");
  	// for all pixels of image 
 	#pragma omp parallel for schedule(dynamic) private(ix,iy) shared(A, ixMax , iyMax)
   	for (iy = iyMin; iy <= iyMax; ++iy){
@@ -808,28 +810,42 @@ int DrawImageOfUnknown (unsigned char A[])
 // ************************** LSM/J*****************************************
 // ****************************************************************************************************************************
 
+
+
+
+int GiveEscapeTime(complex double z){
+
+
+	int nMax = iterMax_LSM;
+	double cabsz;
+	int n;
+
+  	for (n=0; n < nMax; n++){ //forward iteration
+		cabsz = cabs(z);
+    		if (cabsz > ER_LSM) break; // esacping
+    		//if (cabsz< PixelWidth) break; // fails into finite attractor = interior, but not for disconnected Julia sets, then critical point and its preimages  !!!!
+  		z = z*z +c ; /* forward iteration : complex quadratic polynomial */ 
+  	}
+  	
+  	 
+	return n;
+
+}
+
+
 unsigned char ComputeColorOfLSM(complex double z){
 
- int nMax = iterMax_LSM;
-  double cabsz;
-  unsigned char iColor;
-	
-  int n;
+	unsigned char iColor;
+	int n; // escape time
 
-  for (n=0; n < nMax; n++){ //forward iteration
-	cabsz = cabs(z);
-    	if (cabsz > ER_LSM) break; // esacping
-    	//if (cabsz< PixelWidth) break; // fails into finite attractor = interior, but not for disconnected Julia sets, then critical point and its preimages  !!!!
-  			
-   
-     	z = z*z +c ; /* forward iteration : complex quadratic polynomial */ 
-  }
-  
-  // manually udjusted series of ordered colors ( shades of gray )
-  iColor = 255 - 230.0*((double) n)/18.0; // nMax or lower values in denominator
+	
+	n = GiveEscapeTime(z);
+	
+	// manually udjusted series of ordered colors ( shades of gray )
+  	iColor = 255 - 230.0*((double) n)/18.0; // nMax or lower values in denominator
   
   
-  return iColor;
+  	return iColor;
 
 
 }
@@ -1255,7 +1271,7 @@ int DrawImageOMfSAC (unsigned char A[])
  	// for all pixels of image 
 	#pragma omp parallel for schedule(dynamic) private(ix,iy) shared(A, ixMax , iyMax)
   	for (iy = iyMin; iy <= iyMax; ++iy){
-    		fprintf (stderr, "SAC/J :  %d from %d \r", iy, iyMax);	//info 
+    		fprintf (stderr, "%d from %d \r", iy, iyMax);	//info 
     		for (ix = ixMin; ix <= ixMax; ++ix)
       			DrawPointOfSAC(A, ix, iy);	//  
   }
@@ -1297,7 +1313,7 @@ int DrawImageOMfSAC_inv (unsigned char A[])
  	// for all pixels of image 
 	#pragma omp parallel for schedule(dynamic) private(ix,iy) shared(A, ixMax , iyMax)
   	for (iy = iyMin; iy <= iyMax; ++iy){
-    		fprintf (stderr, "SAC/J inv:  %d from %d \r", iy, iyMax);	//info 
+    		fprintf (stderr, "%d from %d \r", iy, iyMax);	//info 
     		for (ix = ixMin; ix <= ixMax; ++ix)
       			DrawPointOfSAC_inv(A, ix, iy);	//  
   }
@@ -1439,28 +1455,29 @@ lagrangian (complex double z0, complex double c, int iMax, double p)
 
 
 unsigned char
-ComputeColor_DLD (complex double z, int FatouType)
+ComputeColor_DLD (complex double z)
 {
 
 
   //double cabsz;
   int iColor;
   double d;
+  int N = iterMax_DLD; // N in wiki = fixed number : maximal number of iterations 
 
-  if (FatouType == 1)
-    {				// interior
-      d = lagrangian (z, c, N, p);
+  //if (FatouType == 1)
+   // {				// interior
+     // d = lagrangian (z, c, N, p);
       // modify gradient position
 
       //{d = d - (int)d;} // only fractional part
-      d = d * d * mi;
+     // d = d * d * mi;
       //if ( d< 1.0 ) d = 0.0;
 
-    }				//  
-  else
-    {
-      d = lagrangian (z, c, 10 * N, p);
-    }
+   // }				//  
+  //else
+    //{
+      d = lagrangian (z, c, N, p); //  
+    //}
 
   iColor = (int) (d * 255) % 255;	// nMax or lower walues in denominator
 
@@ -1480,22 +1497,22 @@ DrawDLDPoint (unsigned char A[], int ix, int iy)
   int i;			/* index of 1D array */
   unsigned char iColor;
   complex double z;
-  int FatouType;
+  //int FatouType;
 
 
   i = Give_i (ix, iy);		/* compute index of 1D array from indices of 2D array */
   z = GiveZ (ix, iy);
-  iColor = A[i];		// read color = read the information about Fatou component type ( interior/exterior)
-  if (iColor == iColorOfInterior)
-    {
-      FatouType = 1;
-    }				// tru = interior
-  else
-    {
-      FatouType = 0;
-    }
+  //iColor = A[i];		// read color = read the information about Fatou component type ( interior/exterior)
+  //if (iColor == iColorOfInterior)
+   // {
+    //  FatouType = 1;
+   // }				// tru = interior
+  //else
+   // {
+   //   FatouType = 0;
+   // }
 
-  iColor = ComputeColor_DLD (z, FatouType);	// compute new color 
+  iColor = ComputeColor_DLD (z);	// compute new color 
   A[i] = iColor;		// save new colr to the array         
 
   return 0;
@@ -1512,12 +1529,12 @@ DrawDLDImage (unsigned char A[])
 {
   unsigned int ix, iy;		// pixel coordinate 
 
-  fprintf(stderr, "compute image DLD \n");
+  fprintf(stderr, "compute image DLD\n");
   // for all pixels of image 
 #pragma omp parallel for schedule(dynamic) private(ix,iy) shared(A, ixMax , iyMax)
   for (iy = iyMin; iy <= iyMax; ++iy)
     {
-      //fprintf (stderr,"%d from %d \r", iy, iyMax);	//info 
+      fprintf (stderr,"%d from %d \r", iy, iyMax);	//info 
       for (ix = ixMin; ix <= ixMax; ++ix)
 	DrawDLDPoint (A, ix, iy);	//  
     }
@@ -1531,9 +1548,427 @@ DrawDLDImage (unsigned char A[])
 
  
  
+
+// ***************************************************************************************************************************
+// ************************** NPM/J = Normal Potential *****************************************
+// ****************************************************************************************************************************
+
+
+
+
+
+/* 
+ The dot product of two vectors a = [a1, a2, ..., an] and b = [b1, b2, ..., bn] is defined as:[1]
+ d = a1b1 + a2b2
+  
+*/
+double cdot(double complex a, double complex b){
  
  
+ return creal(a)*creal(b)+cimag(a)*cimag(b); 
+
+
+}
+
+
+// 
+// output 
+// 
+double GiveReflection(double complex z )
+  {
+   int i=0; // iteration 
+   int iMax = 2000;
+   
+   // https://en.wikipedia.org/wiki/Complex_quadratic_polynomial#First_derivative_with_respect_to_z
+   double complex dz = 1.0; // derivative with respect to z 
+   double reflection = 0.0; //  
+   
+   double h2 = 1.5 ; // height factor of the incoming light
+   double angle = 45.0/360.0 ; // incoming direction of light in turns 
+   double complex v = cexp(2.0*angle *M_PI* I); // = exp(1j*angle*2*pi/360)  // unit 2D vector in this direction
+   // incoming light 3D vector = (v.re,v.im,h2)
+  
+  // https://en.wikipedia.org/wiki/Lambertian_reflectance
+
+   
+   double  complex u;
+   
+   
+   z  = z*z+c; // 
+   dz = 1.0;
+   
+   for(i=0;i<iMax;i++)
+    {  
+      dz = 2.0*dz*z ;
+      z  = z*z+c; // 
+      
+      
+      
+      if(cabs(z) > ER_NP) 
+      { // exterior
+        u = z / dz;
+        u = u / cabs(u);
+        reflection =  cdot(u, v) + h2;  // use the simplest model for the shading: Lambert, which consists in using the dot product of (x,y,1) with a constant vector indicating the direction of the light.
+        reflection = reflection/(1.0 + h2);  // rescale so that t does not get bigger than 1
+        if (reflection<0.0) reflection =0.0;
+        break;
+      
+      }
+    }
+    
+   return reflection;  
+ }
+
+
+
+
+
+// Potential to color
+unsigned char ComputeColorOfNP(complex double z){
+//https://www.math.univ-toulouse.fr/~cheritat/wiki-draw/index.php/Mandelbrot_set#Normal_map_effect
+
+
+  
+  
+  double reflection;
+  unsigned char iColor;
+   
+   
+   
+  // compute 
+   reflection = GiveReflection( z);
+  
+    
+  // 
+  //if (reflection <  )
+    //{ /*  interior  */
+    //  iColor = 0;}
+  //else // exterior 
+        
+    { iColor = 255 * reflection;}
+     
+  return iColor;   
+  
  
+}
+
+
+
+// plots raster point (ix,iy) 
+int DrawPointOfNP (unsigned char A[], int ix, int iy)
+{
+  int i;			/* index of 1D array */
+  unsigned char iColor;
+  complex double z;
+
+
+  i = Give_i (ix, iy);		/* compute index of 1D array from indices of 2D array */
+  z = GiveZ(ix,iy);
+  iColor = ComputeColorOfNP(z);
+  A[i] = iColor ;		// 
+  
+  return 0;
+}
+
+
+
+
+// fill array 
+// uses global var :  ...
+// scanning complex plane 
+// https://en.wikipedia.org/wiki/Shading
+
+//  normal = perpendicular 
+// shading using Normal map and Potential
+// https://en.wikipedia.org/wiki/Lambertian_reflectance
+// http://www.math.titech.ac.jp/~kawahira/gallery/movies/movies.html
+// see 0_1.avi and image 
+//
+
+int DrawImageOfNP (unsigned char A[])
+{
+  unsigned int ix, iy;		// pixel coordinate 
+
+  	fprintf(stderr, "compute image NP\n");
+ 	// for all pixels of image 
+	#pragma omp parallel for schedule(dynamic) private(ix,iy) shared(A, ixMax , iyMax)
+  	for (iy = iyMin; iy <= iyMax; ++iy){
+    		fprintf (stderr, " %d from %d \r", iy, iyMax);	//info 
+    		for (ix = ixMin; ix <= ixMax; ++ix)
+      			DrawPointOfNP(A, ix, iy);	//  
+  }
+
+  return 0;
+}
+
+
+// ----------------- inv --------------------------------
+
+
+// plots raster point (ix,iy) 
+int DrawPointOfNP_inv (unsigned char A[], int ix, int iy)
+{
+  int i;			/* index of 1D array */
+  unsigned char iColor;
+  complex double z;
+  complex double w;
+
+
+  i = Give_i (ix, iy);		/* compute index of 1D array from indices of 2D array */
+  w = GiveW(ix,iy);
+  z = 1/w;
+  iColor = ComputeColorOfNP(z);
+  A[i] = iColor ;		// 
+  
+  return 0;
+}
+
+
+
+
+// fill array 
+// uses global var :  ...
+// scanning complex plane 
+// https://en.wikipedia.org/wiki/Shading
+
+//  normal = perpendicular 
+// shading using Normal map and Potential
+// https://en.wikipedia.org/wiki/Lambertian_reflectance
+// http://www.math.titech.ac.jp/~kawahira/gallery/movies/movies.html
+// see 0_1.avi and image 
+//
+
+int DrawImageOfNP_inv (unsigned char A[])
+{
+  unsigned int ix, iy;		// pixel coordinate 
+
+  	fprintf(stderr, "compute image NP_inv\n");
+ 	// for all pixels of image 
+	#pragma omp parallel for schedule(dynamic) private(ix,iy) shared(A, ixMax , iyMax)
+  	for (iy = iyMin; iy <= iyMax; ++iy){
+    		fprintf (stderr, " %d from %d \r", iy, iyMax);	//info 
+    		for (ix = ixMin; ix <= ixMax; ++ix)
+      			DrawPointOfNP_inv(A, ix, iy);	//  
+  }
+
+  return 0;
+}
+
+
+
+
+ 
+ 
+
+// ***************************************************************************************************************************
+// ************************** NDM/J = Normal Distance *****************************************
+// ****************************************************************************************************************************
+
+
+
+
+
+
+// 
+// output 
+// 
+double GiveReflectionD(double complex z )
+  {
+   int i=0; // iteration 
+   int iMax = 2000;
+   
+   // https://en.wikipedia.org/wiki/Complex_quadratic_polynomial#First_derivative_with_respect_to_z
+   double complex dz = 1.0;   // first derivative with respect to z 
+   double complex dz2 = 0.0;  // second derivative with respect to z 
+   double reflection = 0.0; //  
+   double lo;
+   
+   double h2 = 1.5 ; // height factor of the incoming light
+   double angle = 45.0/360.0 ; // incoming direction of light in turns 
+   double complex v = cexp(2.0*angle *M_PI* I); // = exp(1j*angle*2*pi/360)  // unit 2D vector in this direction
+   // incoming light 3D vector = (v.re,v.im,h2)
+   
+  
+  // https://en.wikipedia.org/wiki/Lambertian_reflectance
+
+   
+   double  complex u;
+   
+   
+   z  = z*z+c; // 
+   dz = 1.0;
+   dz2 = 0.0;
+   
+   for(i=0;i<iMax;i++)
+    {  
+      
+      dz2 = 2.0* ( dz2*z + dz*dz);//2*(der2*z+der**2)
+      dz = 2.0*dz*z ;
+      z  = z*z+c; // 
+      
+      
+      
+      if(cabs(z) > ER_NP) 
+      { // exterior
+      
+      /*
+       lo = 0.5*log(squared_modulus(z))
+    u = z*der*((1+lo)*conj(der**2)-lo*conj(z*der2))
+    u = u/abs(u)
+    */
+      
+      	lo = 0.5*log(cabs(z));
+    	u = z*dz*((1.0+lo)*conj(dz*dz)-lo*conj(z*dz2));
+        //u = z / dz;
+        u = u / cabs(u);
+        reflection =  cdot(u, v) + h2;  // use the simplest model for the shading: Lambert, which consists in using the dot product of (x,y,1) with a constant vector indicating the direction of the light.
+        reflection = reflection/(1.0 + h2);  // rescale so that t does not get bigger than 1
+        if (reflection<0.0) reflection =0.0;
+        break;
+      
+      }
+    }
+    
+   return reflection;  
+ }
+
+
+
+
+
+// Distance to color
+unsigned char ComputeColorOfND(complex double z){
+//https://www.math.univ-toulouse.fr/~cheritat/wiki-draw/index.php/Mandelbrot_set#Variation
+
+
+  
+  
+  double reflection;
+  unsigned char iColor;
+   
+   
+   
+  // compute 
+   reflection = GiveReflectionD( z);
+  
+    
+  // 
+  //if (reflection <  )
+    //{ /*  interior  */
+    //  iColor = 0;}
+  //else // exterior 
+        
+    { iColor = 255 * reflection;}
+     
+  return iColor;   
+  
+ 
+}
+
+
+
+// plots raster point (ix,iy) 
+int DrawPointOfND (unsigned char A[], int ix, int iy)
+{
+  int i;			/* index of 1D array */
+  unsigned char iColor;
+  complex double z;
+
+
+  i = Give_i (ix, iy);		/* compute index of 1D array from indices of 2D array */
+  z = GiveZ(ix,iy);
+  iColor = ComputeColorOfND(z);
+  A[i] = iColor ;		// 
+  
+  return 0;
+}
+
+
+
+
+// fill array 
+// uses global var :  ...
+// scanning complex plane 
+// https://en.wikipedia.org/wiki/Shading
+
+//  normal = perpendicular 
+// shading using Normal map and Potential
+// https://en.wikipedia.org/wiki/Lambertian_reflectance
+// http://www.math.titech.ac.jp/~kawahira/gallery/movies/movies.html
+// see 0_1.avi and image 
+//
+
+int DrawImageOfND (unsigned char A[])
+{
+  unsigned int ix, iy;		// pixel coordinate 
+
+  	fprintf(stderr, "compute image ND\n");
+ 	// for all pixels of image 
+	#pragma omp parallel for schedule(dynamic) private(ix,iy) shared(A, ixMax , iyMax)
+  	for (iy = iyMin; iy <= iyMax; ++iy){
+    		fprintf (stderr, " %d from %d \r", iy, iyMax);	//info 
+    		for (ix = ixMin; ix <= ixMax; ++ix)
+      			DrawPointOfND(A, ix, iy);	//  
+  }
+
+  return 0;
+}
+
+ 
+// ---------------------------- inv ------------------------------------------------
+
+
+
+
+// plots raster point (ix,iy) 
+int DrawPointOfND_inv (unsigned char A[], int ix, int iy)
+{
+  int i;			/* index of 1D array */
+  unsigned char iColor;
+  complex double z;
+  complex double w;
+
+
+  i = Give_i (ix, iy);		/* compute index of 1D array from indices of 2D array */
+  w = GiveW(ix,iy);
+  z = 1/w;
+  iColor = ComputeColorOfND(z);
+  A[i] = iColor ;		// 
+  
+  return 0;
+}
+
+
+
+
+// fill array 
+// uses global var :  ...
+// scanning complex plane 
+// https://en.wikipedia.org/wiki/Shading
+
+//  normal = perpendicular 
+// shading using Normal map and Potential
+// https://en.wikipedia.org/wiki/Lambertian_reflectance
+// http://www.math.titech.ac.jp/~kawahira/gallery/movies/movies.html
+// see 0_1.avi and image 
+//
+
+int DrawImageOfND_inv (unsigned char A[])
+{
+  unsigned int ix, iy;		// pixel coordinate 
+
+  	fprintf(stderr, "compute image ND inv\n");
+ 	// for all pixels of image 
+	#pragma omp parallel for schedule(dynamic) private(ix,iy) shared(A, ixMax , iyMax)
+  	for (iy = iyMin; iy <= iyMax; ++iy){
+    		fprintf (stderr, " %d from %d \r", iy, iyMax);	//info 
+    		for (ix = ixMin; ix <= ixMax; ++ix)
+      			DrawPointOfND_inv(A, ix, iy);	//  
+  }
+
+  return 0;
+}
+
  
  
  
@@ -1547,23 +1982,29 @@ DrawDLDImage (unsigned char A[])
 // *********************************************************************************************
 
 int
-SaveArray2PGMFile (unsigned char A[], double k, char *comment)
+SaveArray2PGMFile (unsigned char A[], char *shortName , char *comment)
 {
 
   FILE *fp;
   const unsigned int MaxColorComponentValue = 255;	/* color component is coded from 0 to 255 ;  it is 8 bit color file */
-  char name[100];		/* name of file */
-  snprintf (name, sizeof name, "%.0f", k );	/*  */
-  char *filename = strcat (name, ".pgm");
+  
+  
+  // https://programmerfish.com/create-output-file-names-using-a-variable-in-c-c/
+  char fileName[512];
+  const char* fileType = ".pgm";
+  sprintf(fileName,"%s%s", shortName, fileType); // 
+  
+  
+  
   char long_comment[200];
-  sprintf (long_comment, "fc(z)=z^2+ c where c = (%f %+f );  %s", creal(c), cimag(c),comment);
+  sprintf (long_comment, "fc(z)=z^2+ c where c = %f %+f*i ;  %s", creal(c), cimag(c),comment);
 
 
 
 
 
   // save image array to the pgm file 
-  fp = fopen (filename, "wb");	// create new file,give it a name and open it in binary mode 
+  fp = fopen (fileName, "wb");	// create new file,give it a name and open it in binary mode 
   fprintf (fp, "P5\n # %s\n %u %u\n %u\n", long_comment, iWidth, iHeight, MaxColorComponentValue);	// write header to the file
   size_t rSize = fwrite (A, sizeof(A[0]), iSize, fp);	// write whole array with image data bytes to the file in one step 
   fclose (fp);
@@ -1571,7 +2012,7 @@ SaveArray2PGMFile (unsigned char A[], double k, char *comment)
   // info 
   if ( rSize == iSize) 
   	{
-  		printf ("File %s saved ", filename);
+  		printf ("File %s saved ", fileName);
   		if (long_comment == NULL || strlen (long_comment) == 0)
     		printf ("\n");
   			else { printf (". Comment = %s \n", long_comment); }
@@ -1604,7 +2045,7 @@ int PrintInfoAboutProgam()
   printf ("Numerical approximation of Julia set for fc(z)= z^2 + c \n");
   //printf ("iPeriodParent = %d \n", iPeriodParent);
   //printf ("iPeriodOfChild  = %d \n", iPeriodChild);
-  printf ("parameter c = ( %.16f ; %.16f ) \n", creal(c), cimag(c));
+  printf ("parameter c = %.16f %+.16f*i  \n", creal(c), cimag(c));
   
   printf ("Image Width = %f in world coordinate\n", ZxMax - ZxMin);
   printf ("PixelWidth = %f \n", PixelWidth);
@@ -1612,6 +2053,8 @@ int PrintInfoAboutProgam()
   printf("for DEM/J \n");
   if ( distanceMax<0.0 || distanceMax > ER ) printf("bad distanceMax\n");
 	printf("Max distance from exterior to the boundary =  distanceMax = %.16f = %f pixels\n",  distanceMax, BoundaryWidth); 
+  printf("\n");
+  
   
   // image corners in world coordinate
   // center and radius
@@ -1622,38 +2065,18 @@ int PrintInfoAboutProgam()
   printf ("For LSM/J \n");
   printf ("Maximal number of iterations = iterMax_LSM = %ld \n", iterMax_LSM);
   printf ("Escape Radius = ER_LSM = %f \n", ER_LSM);
+  printf("\n");
   
   
   printf ("ratio of image  = %f ; it should be 1.000 ...\n", ratio);
   //
   printf("gcc version: %d.%d.%d\n",__GNUC__,__GNUC_MINOR__,__GNUC_PATCHLEVEL__); // https://stackoverflow.com/questions/20389193/how-do-i-check-my-gcc-c-compiler-version-for-my-eclipse
-  // OpenMP version is diplayed in the console 
+  // OpenMP version is displayed in the console 
   return 0;
 }
 
 
 
-
-
-int PrintInfoAboutPoint(complex double z){
-
-	//unsigned int ix, iy;		// pixel coordinate
-	// to do 
-	
-	double arg;
-	unsigned char iColor;
-	
-	arg = Give_Arg( z, 2500); //   N in wiki
-	iColor = ComputeColorOfSAC(z);
-	
-	printf ("parameter z = ( %.16f ; %.16f ) \n", creal(z), cimag(z));
-	printf ("SAC/J : arg = %.16f ; iColor = %d  \n", arg, iColor);
-	
-	
-
-	return z; 
-
-}
 
 // find such ER for LSM/J that level curves croses critical point and it's preimages
 double GiveER(int i_Max){
@@ -1769,96 +2192,124 @@ int end(){
 // ********************************************************************************************************************
 
 int main () {
+  
+  
+  
   setup ();
+  
   
   
    
   
   DrawImageOfDEMJ(data);
-  SaveArray2PGMFile (data, iWidth+1, "boundary using DEM/J");
+  SaveArray2PGMFile (data, "de", "boundary using DEM"); // name of the file is name.png 
   
-  
-  
+   
   DrawImageOfBD(data);
-  SaveArray2PGMFile (data, iWidth+2, "BD/J");
+  SaveArray2PGMFile (data, "bd", "Binary Decomposition");
   
   ComputeBoundaries(data, edge);
-  SaveArray2PGMFile (edge, iWidth+3, "boundaries of BD/J");
+  SaveArray2PGMFile (edge, "bdb", "boundaries of BD");
   
   DrawImageOMfBD(data);
-  SaveArray2PGMFile (data, iWidth+4, "MBD/J");
+  SaveArray2PGMFile (data,"mbd" , "Modified Binary Decomposition");
   
   ComputeBoundaries(data, edge2);
-  SaveArray2PGMFile (edge2, iWidth+5, "boundaries of MBD/J");
+  SaveArray2PGMFile (edge2, "mbdb", "boundaries of MBD");
   
   
   
  
   DrawImageOfLSM(data);
-  SaveArray2PGMFile (data, iWidth+6, "LSM/J");
+  SaveArray2PGMFile (data, "ls", "Level Set Method of Escape Time");
   
   
   ComputeBoundaries(data, edge);
-  SaveArray2PGMFile (edge, iWidth+7, "boundaries of LSM/J");
-  
+  SaveArray2PGMFile (edge, "lc", "LCM = boundaries of LSM = Level Curves Method");
+    
   CopyBoundaries(edge, data);
-  SaveArray2PGMFile (data, iWidth+8, "LSM + boundaries of LSM/J");
+  SaveArray2PGMFile (data, "lsc", "LSM + LCM (boundaries of LSM/J");
   
   CopyBoundaries(edge, edge2);
-  SaveArray2PGMFile (edge2, iWidth+9, "boundaries of LSM/J and MBD");
+  SaveArray2PGMFile (edge2, "lcmbd", "boundaries of LSM/J and MBD");
   
   
   DrawImageOfUnknown(data);
-  SaveArray2PGMFile (data, iWidth+10, "Unknown : boundary and slow dynamics");
+  SaveArray2PGMFile (data, "u", "Unknown : boundary and slow dynamics");
+ 
+ 
   
     
   DrawImageOMfSAC(data);
-  SaveArray2PGMFile (data, iWidth+11, "SAC/J + DEM/J");
+  SaveArray2PGMFile (data, "sac", "SAC + DEM");
   
   DrawDLDImage(data);
   DrawImageOfDEMJ_boundary(data);
- SaveArray2PGMFile (data, iWidth+12, "DLD/J + boundary by DEM");
+  SaveArray2PGMFile (data, "dld", "DLD/J + boundary by DEM");
+ 
+    
+  DrawImageOfNP(data);
+  SaveArray2PGMFile (data, "np", "NP/J");
+  
+  
+  DrawImageOfND(data);
+  SaveArray2PGMFile (data, "nd", "ND/J");
+  
+  
   
   // inverterd plane = wplane = 1/z plane
   
   DrawImageOfDEMJ_inv(data);
-  SaveArray2PGMFile (data, iWidth+13, "boundary using DEM/J inv");
+  SaveArray2PGMFile (data, "dei", "boundary using DEM/J inv");
   
   
   DrawImageOfBD_inv(data);
-  SaveArray2PGMFile (data, iWidth+14, "BD/J inverted ");
+  SaveArray2PGMFile (data, "bdi", "BD/J inverted ");
+  
+  
+  
   
   ComputeBoundaries(data, edge);
-  SaveArray2PGMFile (edge, iWidth+15, "boundaries of BD/J inv");
+  SaveArray2PGMFile (edge, "bdbi", "boundaries of BD inv");
   
   DrawImageOMfSAC_inv(data);
-  SaveArray2PGMFile (data, iWidth+16, "SAC/J + DEM/J inverted");
+  SaveArray2PGMFile (data, "sacdei", "SAC + DEM inverted");
   
   DrawImageOfLSM_inv(data);
-  SaveArray2PGMFile (data, iWidth+17, "LSM/J inv");
+  SaveArray2PGMFile (data, "lsi", "LSM inv");
   
   ComputeBoundaries(data, edge);
-  SaveArray2PGMFile (edge, iWidth+18, "boundaries of LSM/J inv");
-  
+  SaveArray2PGMFile (edge, "lci", "boundaries of LSM inv");
+ 
+   
   CopyBoundaries(edge, data);
-  SaveArray2PGMFile (data, iWidth+19, "LSM + boundaries of LSM/J inv");
+  SaveArray2PGMFile (data, "lsci", "LSM + boundaries of LSM/J inv");
+  
+  
+  DrawImageOfNP_inv(data);
+  SaveArray2PGMFile (data, "npi", "NP inverted");
+  
+  
+  DrawImageOfND_inv(data);
+  SaveArray2PGMFile (data, "ndi", "ND inverted");
   
   
   // test images
+  
+  
   DrawImageOfDEMJ(data);
   CheckZPlaneOrientation(data);
-  SaveArray2PGMFile (data, iWidth+20, "boundary using DEM/J and first quadrant");
+  SaveArray2PGMFile (data, "defq", "boundary using DEM/J and first quadrant");
   
   DrawImageOfDEMJ(data); // z window
   ShowWWindowOnZWindow(data);
-  SaveArray2PGMFile (data, iWidth+21, "W Window On Z Window");
+  SaveArray2PGMFile (data, "wonz", "W Window On Z Window");
   
   DrawImageOfDEMJ_inv(data); // w window
   ShowZWindowOnWWindow(data);
-  SaveArray2PGMFile (data, iWidth+22, "Z Window On W Window");
+  SaveArray2PGMFile (data, "zonw", "Z Window On W Window");
   
-  
-  
+ 
   
   //
   end();

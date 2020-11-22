@@ -44,6 +44,12 @@ See:
 ![](./images/lci.png "boundaries of LSM/J inv") 
 ![](./images/lsci.png "LSM + boundaries of LSM/J inv") 
 
+
+### Normal shading
+![](./images/npi.png "NP + DEM inverted") 
+![](./images/ndi.png "ND + DEM inverted") 
+
+
 ## test images
 
 ![](./images/defq.png "boundary using DEM/J and first quadrant") 
