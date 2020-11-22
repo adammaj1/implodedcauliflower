@@ -2,6 +2,8 @@ Imploded cauliflower - is a Julia set for c=1/4+epsilon with epsilon >0.
 
 How many different ways are there to show such set ?
 
+Here c = 0.35 
+
 
 
 # Images
@@ -59,6 +61,8 @@ See:
 ## Contributors
 
 are wellcome 
+
+See als [FF](https://fractalforums.org/programming/11/how-many-different-ways-are-there-to-show-such-set/3874) 
 
 
   
