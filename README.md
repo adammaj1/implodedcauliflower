@@ -13,37 +13,42 @@ See:
 
 ## dynamic plane = z plane
 
-![](./images/1.png "boundary using DEM/J") 
-![](./images/2.png "BD/J") 
-![](./images/3.png "boundaries of BD/J") 
-![](./images/4.png "MBD/J") 
-![](./images/5.png "boundaries of MBD/J") 
+![](./images/de.png "boundary using DEM/J") 
+![](./images/bd.png "BD/J") 
+![](./images/bdb.png "boundaries of BD/J") 
+![](./images/mbd.png "MBD/J") 
+![](./images/mdbb.png "boundaries of MBD/J") 
 
 
-![](./images/6.png "LSM/J") 
-![](./images/7.png "boundaries of LSM/J") 
-![](./images/8.png "LSM + boundaries of LSM/J")
-![](./images/9.png "boundaries of LSM/J and MBD") 
-![](./images/10.png "Unknown : boundary and slow dynamics") 
-![](./images/11.png "SAC/J + DEM/J") 
-![](./images/12.png "DLD/J + boundary by DEM") 
+![](./images/ls.png "LSM/J") 
+![](./images/lc.png "boundaries of LSM/J") 
+![](./images/lsc.png "LSM + boundaries of LSM/J")
+![](./images/lcmbd.png "boundaries of LSM/J and MBD") 
+![](./images/u.png "Unknown : boundary and slow dynamics") 
+![](./images/sac.png "SAC/J + DEM/J") 
+![](./images/dld.png "DLD/J + boundary by DEM") 
+
+
+### Normal shading
+![](./images/np.png "NP + DEM") 
+![](./images/nd.png "ND + DEM") 
 
 
 ## Inverted plane  = w plane  = 1/z plane 
 
-![](./images/13.png "boundary using DEM/J inv") 
-![](./images/14.png "BD/J inverted") 
-![](./images/15.png "boundaries of BD/J inv") 
-![](./images/16.png "SAC/J + DEM/J inverted") 
-![](./images/17.png "LSM/J inv") 
-![](./images/18.png "boundaries of LSM/J inv") 
-![](./images/19.png "LSM + boundaries of LSM/J inv") 
+![](./images/dei.png "boundary using DEM/J inv") 
+![](./images/bdi.png "BD/J inverted") 
+![](./images/bdbi.png "boundaries of BD/J inv") 
+![](./images/sacdei.png "SAC/J + DEM/J inverted") 
+![](./images/lsi.png "LSM/J inv") 
+![](./images/lci.png "boundaries of LSM/J inv") 
+![](./images/lsci.png "LSM + boundaries of LSM/J inv") 
 
 ## test images
 
-![](./images/20.png "boundary using DEM/J and first quadrant") 
-![](./images/21.png "W Window On Z Window") 
-![](./images/22.png "Z Window On W Window") 
+![](./images/defq.png "boundary using DEM/J and first quadrant") 
+![](./images/wonz.png "W Window On Z Window") 
+![](./images/zonw.png "Z Window On W Window") 
 
 
 
