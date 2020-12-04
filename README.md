@@ -28,6 +28,22 @@ See:
 ![](./images/sac.png "SAC/J + DEM/J") 
 ![](./images/dld.png "DLD/J + boundary by DEM") 
 
+### procedural texture
+
+
+![](./images/t0n.png "") 
+![](./images/t1n.png "") 
+![](./images/t2n.png "")
+![](./images/t3n.png "") 
+![](./images/t4n.png "") 
+![](./images/t5n.png "") 
+![](./images/t6n.png "") 
+
+![](./images/t5nb.png "") 
+![](./images/t6nb.png "") 
+![](./images/t7nb.png "") 
+
+
 
 ### Normal shading
 ![](./images/np.png "NP + DEM") 
