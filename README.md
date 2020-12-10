@@ -1,6 +1,6 @@
 Imploded cauliflower - is a Julia set for c=1/4+epsilon with epsilon >0. 
 
-How many different ways are there to show such set ?
+How many different ways are there to show such set ? ( program d.c creates 39 pgm images )
 
 Here c = 0.35 
 
@@ -14,6 +14,7 @@ See:
 ## dynamic plane = z plane
 
 ![](./images/de.png "boundary using DEM/J") 
+![](./images/pot.png "potential and boundary by DEM") 
 ![](./images/bd.png "BD/J") 
 ![](./images/bdb.png "boundaries of BD/J") 
 ![](./images/mbd.png "MBD/J") 
@@ -39,6 +40,8 @@ See:
 ![](./images/t5n.png "") 
 ![](./images/t6n.png "") 
 
+with boundaries 
+
 ![](./images/t5nb.png "") 
 ![](./images/t6nb.png "") 
 ![](./images/t7nb.png "") 
@@ -59,7 +62,7 @@ See:
 ![](./images/lsi.png "LSM/J inv") 
 ![](./images/lci.png "boundaries of LSM/J inv") 
 ![](./images/lsci.png "LSM + boundaries of LSM/J inv") 
-
+![](./images/pot_i.png "potential +  boundary by DEM inverted") 
 
 ### Normal shading
 ![](./images/npi.png "NP + DEM inverted") 
@@ -79,7 +82,7 @@ See:
 * [d.c ](./src/d.c) - c console program for creating pgm images
 * [i.c](./src/i.c) - c console program for testing functions from the main program (d.c file). Prints info about point z  
 * [g.sh](./src/g.sh) - bash script for conversion ( from pgm to png ) and resizing ( downscalling) using Image Magic
-
+* [a.txt](./src/a.txt) - text output of d.c program
 
 # technical notes
 
@@ -128,7 +131,7 @@ then link the images:
 ```
 
 ```git
-gitm mv -f 
+git mv -f 
 ```
 
 
