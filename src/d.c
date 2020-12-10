@@ -76,12 +76,18 @@ sys	0m0,161s
 
 /* --------------------------------- global variables and consts ------------------------------------------------------------ */
 
+
+int NumberOfImages = 0;
+
+
 //FunctionType
 typedef enum  {LSM , DEM, Unknown, BD, MBD , SAC, DLD, 
-		ND, NP
+		ND, NP, POT
 		
 		} FunctionTypeT; 
 // FunctionTypeT FunctionType;
+
+int PlaneInversion = 0; // boolean 1 = w = 1/z  plane; 0 = z plane 
 
 
 // virtual 2D array and integer ( screen) coordinate
@@ -98,10 +104,12 @@ static unsigned int iHeight = 5000;	//
 // The size of array has to be a positive constant integer 
 static unsigned int iSize;	// = iWidth*iHeight; 
 
-// memmory 1D array 
+// ----------memmory 1D arrays ==================
+// unsigned char = for 1 byte ( 8 bit) colors 
 unsigned char *data;
 unsigned char *edge;
 unsigned char *edge2;
+ 
 
 // unsigned int i; // var = index of 1D array
 //static unsigned int iMin = 0; // Indexes of array starts from 0 not 1
@@ -154,13 +162,15 @@ double complex c;		// parameter of function fc(z)=z^2 + c
 static unsigned long int iterMax = 1000000;	//iHeight*100;
 const long int iterMax_LSM = 255;
 const int iterMax_DLD = 200; // N in wiki = fixed number : maximal number of iterations
-
+const int iterMax_pot = 400; // potential 
 
 double ER = 200.0;		// EscapeRadius for bailout test 
 double EscapeRadius=1000000; // = ER big !!!!
 double ER_LSM ; // see GiveER_LSM  // 27.764 =  manually find value such that level curves of escape time cross critical point and it's  preimages
 double ER_DLD ; // see GiveER_LSM  // 27.764 =  manually find value such that level curves of escape time cross critical point and it's  preimages
 double ER_NP = 100.0; 
+double ER_pot = 100000.0;  // sqrt(1e24)
+
 double loger; // = log(ER_LSM); // for texture
 static double TwoPi=2.0*M_PI; // texture
 double MaxFinalRadius;
@@ -183,7 +193,8 @@ double p = 0.180; //0.01444322;		//
 //double me = 1.0;
 double mi = 0.9;
 
-
+// potential
+double MaxImagePotential;
 
 
 
@@ -363,6 +374,9 @@ double GiveNormalizedFinalRadius(complex double z){
 	return (FinalRadius/ MaxFinalRadius);
 
 }
+
+
+
 
 
 
@@ -694,7 +708,7 @@ unsigned char ComputeColorOfDEMJ_boundary(complex double z){
 
 
 // plots raster point (ix,iy) 
-int DrawPointOfDEMJ_boundary (unsigned char A[], int ix, int iy)
+int DrawPointOfDEMJ_boundary (unsigned char A[], int PlaneInversion, int ix, int iy, unsigned char iColor0)
 {
   int i;			/* index of 1D array */
   unsigned char iColor;
@@ -702,10 +716,18 @@ int DrawPointOfDEMJ_boundary (unsigned char A[], int ix, int iy)
 
 
   i = Give_i (ix, iy);		/* compute index of 1D array from indices of 2D array */
-  z = GiveZ(ix,iy);
+  
+  if (PlaneInversion)
+  	{ 
+  		complex double w;
+  		w = GiveW(ix,iy);
+  		z = 1/w;
+  	}
+  	else {  z = GiveZ(ix,iy);}
+  	
   iColor = ComputeColorOfDEMJ_boundary(z);
-  if (iColor == iColorOfBoundary) 
-  	{ A[i] = iColor ;} // draw only boundary without changing other parts 		
+  if (iColor == iColorOfBoundary) // check if it is boundary
+  	{ A[i] = iColor0 ;} // draw only boundary without changing other parts using color iColor0		
   
   return 0;
 }
@@ -716,7 +738,7 @@ int DrawPointOfDEMJ_boundary (unsigned char A[], int ix, int iy)
 // fill array 
 // uses global var :  ...
 // scanning complex plane 
-int DrawImageOfDEMJ_boundary (unsigned char A[])
+int DrawImageOfDEMJ_boundary (unsigned char A[], int PlaneInversion, const unsigned char iColor)
 {
   unsigned int ix, iy;		// pixel coordinate 
 
@@ -726,7 +748,7 @@ int DrawImageOfDEMJ_boundary (unsigned char A[])
   	for (iy = iyMin; iy <= iyMax; ++iy){
     		fprintf (stderr, " %d from %d \r", iy, iyMax);	//info 
     		for (ix = ixMin; ix <= ixMax; ++ix)
-      			DrawPointOfDEMJ_boundary(A, ix, iy);	//  
+      			DrawPointOfDEMJ_boundary(A, PlaneInversion, ix, iy, iColor);	//  
   }
 
   return 0;
@@ -917,7 +939,7 @@ unsigned char ComputeColorOfMBD(complex double z){
 double Give2DGrayGradient(double x, double y, const int k ){
 
 	
-	double d; 
+	double d;  // position of the color in the gradient . It is in [0,1]] range
 	
 	
   	switch(k){
@@ -932,6 +954,7 @@ double Give2DGrayGradient(double x, double y, const int k ){
   		
   		case 4 : {d = x; break;}
   		
+  		// gradients 5,6,7 are similar , difference : 1, 1,5, 2.0 
   		case 5: {x =x - 0.5; y =y - 0.5; d = cabs(x+y*I); break;} // cabs(z)
   		
   		case 6: {x =1.5*(x - 0.5); y =1.5*(y - 0.5); d = cabs(x+y*I); break;} // cabs(z)
@@ -1555,6 +1578,65 @@ unsigned char ComputeColorOfND(complex double z){
 }
 
 
+// -------------------------- potential========
+
+
+double ComputePotential(const complex double z0){
+
+	double potential = 0.0; // interior
+	double s = 0.5;
+	complex double z = z0;
+	double r;
+	int iter;
+	
+	for (iter = 0; iter < iterMax_pot; ++iter){
+		
+		z = z*z +c; // complex quadratic polynomial
+		s *= 0.5;  // 
+		r = cabs(z);
+		if (r > ER_pot) {break;}
+	
+	
+	}
+	
+	
+	
+	
+	
+	potential =  s*log2(r); // log(zn)* 2^(-n)
+	return potential;
+	
+}
+
+
+unsigned char ComputeColorOfPOT(complex double z){
+
+
+	double potential = ComputePotential(z);
+	
+	if (PlaneInversion) // usung global var 
+		{potential /= 4.0;} // manual normalize
+	unsigned char iColor = 255 * sqrt(sqrt(potential));
+     	return iColor;   
+  
+ 
+}
+
+
+/*
+int local_setup(int PlaneInversion){
+
+	if (PlaneInversion)
+		{ MaxImagePotential =ComputePotential( 1.0/ 0.0);}
+		//else {MaxImagePotential}
+
+	return 0;
+
+}
+
+*/
+
+
  
  
 /* ==================================================================================================
@@ -1586,6 +1668,8 @@ unsigned char ComputeColor(FunctionTypeT FunctionType, complex double z){
 		case ND : {iColor = ComputeColorOfND(z); break;}
 		
 		case NP : {iColor = ComputeColorOfNP(z); break;}
+		
+		case POT : {iColor = ComputeColorOfPOT(z); break;}
 		
 	
 		default: {}
@@ -1634,6 +1718,8 @@ int DrawPoint (FunctionTypeT FunctionType, int PlaneInversion, unsigned char A[]
 int DrawImage (FunctionTypeT FunctionType, int PlaneInversion, unsigned char A[])
 {
   unsigned int ix, iy;		// pixel coordinate 
+  	
+  	//local_setup(PlaneInversion);
 
   	fprintf(stderr, "compute image FunctionType = %d PlaneInversion = %d\n", FunctionType, PlaneInversion);
  	// for all pixels of image 
@@ -1647,9 +1733,8 @@ int DrawImage (FunctionTypeT FunctionType, int PlaneInversion, unsigned char A[]
   return 0;
 }
 
-
-
  
+
  
  
 // *******************************************************************************************
@@ -1693,6 +1778,10 @@ SaveArray2PGMFile (unsigned char A[], char *shortName , char *comment)
   			else { printf (". Comment = %s \n", long_comment); }
   	}
   	else {printf("wrote %zu elements out of %u requested\n", rSize,  iSize);}
+  	
+  	
+  // 
+  NumberOfImages +=1; // count images using global variable
 
   return 0;
 }
@@ -1714,7 +1803,7 @@ SaveArray2PGMFile (unsigned char A[], char *shortName , char *comment)
 
 int PrintInfoAboutProgam()
 {
-
+	printf("Number of pgm images = %d \n", NumberOfImages);	
   
   // display info messages
   printf ("Numerical approximation of Julia set for fc(z)= z^2 + c \n");
@@ -1741,6 +1830,8 @@ int PrintInfoAboutProgam()
   printf ("Maximal number of iterations = iterMax_LSM = %ld \n", iterMax_LSM);
   printf ("Escape Radius = ER_LSM = %f \n", ER_LSM);
   printf("\n");
+  
+  
   
   
   printf ("ratio of image  = %f ; it should be 1.000 ...\n", ratio);
@@ -1809,8 +1900,10 @@ int setup ()
   data = malloc (iSize * sizeof (unsigned char));
   edge = malloc (iSize * sizeof (unsigned char));
   edge2 = malloc (iSize * sizeof (unsigned char));
+  //
+ 
   	
-  if (data == NULL || edge == NULL || edge2 == NULL){
+  if (data == NULL || edge == NULL || edge2 == NULL ){
     fprintf (stderr, " Could not allocate memory");
     return 1;
   }
@@ -1839,6 +1932,7 @@ int end(){
   free (data);
   free(edge);
   free(edge2);
+ 
   PrintInfoAboutProgam();
   return 0;
 
@@ -1854,29 +1948,29 @@ int main () {
   
   setup ();
   
-  
+  PlaneInversion = 0; 
   
    
   
   
-  DrawImage(DEM, 0, data);
+  DrawImage(DEM, PlaneInversion, data);
   SaveArray2PGMFile (data, "de", "boundary using DEM"); // name of the file is name.png 
   
    
-  DrawImage(BD, 0, data);
+  DrawImage(BD, PlaneInversion, data);
   SaveArray2PGMFile (data, "bd", "Binary Decomposition");
   
   ComputeBoundaries(data, edge);
   SaveArray2PGMFile (edge, "bdb", "boundaries of BD");
   
-  DrawImage(MBD, 0, data);
+  DrawImage(MBD, PlaneInversion, data);
   SaveArray2PGMFile (data,"mbd" , "Modified Binary Decomposition");
   
   ComputeBoundaries(data, edge2);
   SaveArray2PGMFile (edge2, "mbdb", "boundaries of MBD");
   
   
-  DrawImage(LSM, 0, data);
+  DrawImage(LSM, PlaneInversion, data);
   SaveArray2PGMFile (data, "ls", "Level Set Method of Escape Time");
   
   
@@ -1889,9 +1983,9 @@ int main () {
   CopyBoundaries(edge, edge2);
   SaveArray2PGMFile (edge2, "lcmbd", "boundaries of LSM and MBD");
   
-  DrawImage(BD, 0, data); // data =  "bd", "Binary Decomposition");
+  DrawImage(BD, PlaneInversion, data); // data =  "bd", "Binary Decomposition");
   ComputeBoundaries(data, edge); // edge =  "bdb", "boundaries of BD");
-  DrawImage(LSM, 0, data); //(data = "ls", "Level Set Method of Escape Time");
+  DrawImage(LSM, PlaneInversion, data); //(data = "ls", "Level Set Method of Escape Time");
   ComputeBoundaries(data, edge2); //edge2 =  "lc", "LCM = boundaries of LSM = Level Curves Method");
   CopyBoundaries(edge, edge2); // lc+bdb
   SaveArray2PGMFile (edge2, "lcbdb", "boundaries of LSM and BD");
@@ -1902,69 +1996,90 @@ int main () {
   
   // texture
   DrawImageOfTexture(data, 0);
-  SaveArray2PGMFile (data, "t0n", "texture 0 ; x= angle y = frac(radius)");
+  SaveArray2PGMFile (data, "t0", "texture 0 ; x= angle y = frac(radius)");
   
   DrawImageOfTexture(data, 1);
-  SaveArray2PGMFile (data, "t1n", "texture 1 ; x= angle y = frac(radius)");
+  SaveArray2PGMFile (data, "t1", "texture 1 ; x= angle y = frac(radius)");
   
   
   DrawImageOfTexture(data, 2);
-  SaveArray2PGMFile (data, "t2n", "texture 2 ; x= angle y = frac(radius)");
+  SaveArray2PGMFile (data, "t2", "texture 2 ; x= angle y = frac(radius)");
   
   DrawImageOfTexture(data, 3);
-  SaveArray2PGMFile (data, "t3n", "texture 3 ; x= angle y = frac(radius)");
+  SaveArray2PGMFile (data, "t3", "texture 3 ; x= angle y = frac(radius)");
   
   
   DrawImageOfTexture(data, 4);
-  SaveArray2PGMFile (data, "t4n", "texture 4 ; x= angle y = frac(radius)");
+  SaveArray2PGMFile (data, "t4", "texture 4 ; x= angle y = frac(radius)");
   
   DrawImageOfTexture(data, 6);
-  SaveArray2PGMFile (data, "t6n", "texture 5 cabs(z) ; x= angle y = frac(radius)");
+  SaveArray2PGMFile (data, "t6", "texture 5 cabs(z) ; x= angle y = frac(radius)");
   
   CopyBoundaries(edge2, data); // lc+bdb
-  SaveArray2PGMFile (data, "t5nb", "texture 5 cabs(z) and boundaries ; x= angle y = frac(radius)");
+  SaveArray2PGMFile (data, "t5b", "texture 5 cabs(z) and boundaries ; x= angle y = frac(radius)");
   
   
   DrawImageOfTexture(data, 6);
   CopyBoundaries(edge2, data); // lc+bdb
-  SaveArray2PGMFile (data, "t6nb", "texture 6 cabs(z) and boundaries ; x= angle y = frac(radius)");
+  SaveArray2PGMFile (data, "t6b", "texture 6 cabs(z) and boundaries ; x= angle y = frac(radius)");
   
   
   DrawImageOfTexture(data, 7);
   CopyBoundaries(edge2, data); // lc+bdb
-  SaveArray2PGMFile (data, "t7nb", "texture 7 cabs(z) and boundaries ; x= angle y = frac(radius)");
+  SaveArray2PGMFile (data, "t7b", "texture 7 cabs(z) and boundaries ; x= angle y = frac(radius)");
   
   
   
   
-  DrawImage(Unknown, 0, data);
+  DrawImage(Unknown, PlaneInversion, data);
   SaveArray2PGMFile (data, "u", "Unknown : boundary and slow dynamics");
  
      
-  DrawImage(SAC, 0, data);
+  DrawImage(SAC, PlaneInversion, data);
   SaveArray2PGMFile (data, "sac", "SAC + DEM");
   
-  DrawImage(DLD, 0, data);
-  DrawImageOfDEMJ_boundary(data);
+  DrawImage(DLD, PlaneInversion, data);
+  DrawImageOfDEMJ_boundary(data, PlaneInversion, 255);
   SaveArray2PGMFile (data, "dld", "DLD/J + boundary by DEM");
  
     
-  DrawImage(NP, 0, data);
+  DrawImage(NP, PlaneInversion, data);
   SaveArray2PGMFile (data, "np", "NP/J");
   
   
-  DrawImage(ND, 0, data);
+  DrawImage(ND, PlaneInversion, data);
   SaveArray2PGMFile (data, "nd", "ND/J");
   
   
   
-  // inverterd plane = wplane = 1/z plane
+  DrawImage(POT, PlaneInversion, data);
+  DrawImageOfDEMJ_boundary(data, PlaneInversion, 255);
+  SaveArray2PGMFile (data, "pot", "potential"); // name of the file is name.png 
   
-  DrawImage(DEM, 1, data);
+  
+  // test image
+  DrawImage(DEM, PlaneInversion, data);
+  CheckZPlaneOrientation(data);
+  SaveArray2PGMFile (data, "defq", "boundary using DEM/J and first quadrant");
+ 
+  
+  // z window
+  DrawImage(DEM, PlaneInversion, data);
+  ShowWWindowOnZWindow(data);
+  SaveArray2PGMFile (data, "wonz", "W Window On Z Window");
+  
+  
+  
+  
+  // ------------------ inverterd plane = wplane = 1/z plane -------------------------------------
+ 
+  PlaneInversion = 1; 
+  
+  DrawImage(DEM, PlaneInversion, data);
   SaveArray2PGMFile (data, "dei", "boundary using DEM/J inv");
   
   
-  DrawImage(BD, 1, data);
+  DrawImage(BD, PlaneInversion, data);
   SaveArray2PGMFile (data, "bdi", "BD/J inverted ");
   
  
@@ -1972,9 +2087,9 @@ int main () {
   SaveArray2PGMFile (edge, "bdbi", "boundaries of BD inv");
   
   
-  DrawImage(BD, 1, data); // data =  "bdi", "Binary Decomposition inv");
+  DrawImage(BD, PlaneInversion, data); // data =  "bdi", "Binary Decomposition inv");
   ComputeBoundaries(data, edge); // edge =  "bdbi", "boundaries of BD inv");
-  DrawImage(LSM, 1, data); //(data = "lsi", "Level Set Method of Escape Time inv");
+  DrawImage(LSM, PlaneInversion, data); //(data = "lsi", "Level Set Method of Escape Time inv");
   ComputeBoundaries(data, edge2); //edge2 =  "lci", "LCM = boundaries of LSM = Level Curves Method inv");
   CopyBoundaries(edge, edge2); // lc+bdb
   SaveArray2PGMFile (edge2, "lcbdbi", "boundaries of LSM and BD inv");
@@ -1983,10 +2098,10 @@ int main () {
   
   
   
-  DrawImage(SAC, 1, data);
+  DrawImage(SAC, PlaneInversion, data);
   SaveArray2PGMFile (data, "sacdei", "SAC + DEM inverted");
   
-  DrawImage(LSM, 1, data);
+  DrawImage(LSM, PlaneInversion, data);
   SaveArray2PGMFile (data, "lsi", "LSM inv");
  
  
@@ -1996,31 +2111,25 @@ int main () {
     
   CopyBoundaries(edge, data);
   SaveArray2PGMFile (data, "lsci", "LSM + boundaries of LSM/J inv");
+  
+  
    
   DrawImage(NP, 1, data);
   SaveArray2PGMFile (data, "npi", "NP inverted");
    
   DrawImage(ND, 1, data);
   SaveArray2PGMFile (data, "ndi", "ND inverted");
-  
-  // test images
-  DrawImage(DEM, 0, data);
-  CheckZPlaneOrientation(data);
-  SaveArray2PGMFile (data, "defq", "boundary using DEM/J and first quadrant");
- 
  
   
+  DrawImage(POT, PlaneInversion, data);
+  DrawImageOfDEMJ_boundary(data, PlaneInversion, 255);
+  SaveArray2PGMFile (data, "pot_i", "potential inverted"); // name of the file is name.png 
   
-  // z window
-  DrawImage(DEM, 0, data);
-  ShowWWindowOnZWindow(data);
-  SaveArray2PGMFile (data, "wonz", "W Window On Z Window");
-  
-  DrawImage(DEM, 1, data); // w window
+  DrawImage(DEM, PlaneInversion, data); // w window
   ShowZWindowOnWWindow(data);
   SaveArray2PGMFile (data, "zonw", "Z Window On W Window");
   
- 
+  
   
   //
   end();

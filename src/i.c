@@ -24,6 +24,8 @@ double complex c = 0.35;		// parameter of function fc(z)=z^2 + c
 // ------------------- ET -----------------------------------------
 //static unsigned long int iterMax = 1000000;	//iHeight*100;
 unsigned long int iterMax_LSM = 255;
+const int iterMax_pot = 400; // potential 
+
 
 
 double ER = 200.0;		// EscapeRadius for bailout test 
@@ -31,7 +33,7 @@ double EscapeRadius=1000000; // = ER big !!!!
 double ER_LSM ; // see GiveER_LSM  // 27.764 =  manually find value such that level curves of escape time cross critical point and it's  preimages
 double ER_DLD ; // see GiveER_LSM  // 27.764 =  manually find value such that level curves of escape time cross critical point and it's  preimages
 double ER_NP = 100.0; 
-
+double ER_pot = 100000.0;  // sqrt(1e24)
 
 
 // -------------- DEM ---------------------------------------
@@ -418,6 +420,43 @@ int GiveEscapeTime(complex double z){
 }
 
 
+//
+
+
+double ComputePotential(const complex double z0){
+
+	double potential = 0.0; // interior
+	double s = 0.5;
+	complex double z = z0;
+	double r;
+	int iter;
+	
+	for (iter = 0; iter < iterMax_pot; ++iter){
+		
+		z = z*z +c; // complex quadratic polynomial
+		s *= 0.5;  // 
+		r = cabs(z);
+		if (r > ER_pot) {break;}
+	
+	
+	}
+	
+	
+	
+	
+	
+	potential =  s*log2(r); // log(zn)* 2^(-n)
+	return potential;
+	
+}
+
+
+
+
+
+
+
+
 
 
  
@@ -430,6 +469,7 @@ int PrintInfoAboutPoint(complex double z0){
 	unsigned char iColor;
 	double reflection;//  = GiveReflection(z); 
 	int et;
+	double potential;
 	
 	
 	printf ("input:  z = %.16f %+.16f*i\n", creal(z0), cimag(z0));
@@ -453,7 +493,10 @@ int PrintInfoAboutPoint(complex double z0){
 	iColor = ComputeColorOfNP(z0);
 	printf ("NP/J : reflection = %.16f ; iColor = %d  \n", reflection, iColor);
 	
-	
+	// 
+	potential = ComputePotential(z0);
+	iColor = (unsigned char)(potential*255);
+	printf ("potential = %.16f ; iColor = %d  \n", potential, iColor);
 
 	return 0; 
 
@@ -472,6 +515,7 @@ int main(){
   
   	setup();
 	PrintInfoAboutPoint(0.0);
+	PrintInfoAboutPoint(-0.591607978309962*I);
 	return 0;
 
 }
