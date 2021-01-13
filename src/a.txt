@@ -1,95 +1,3 @@
-export  OMP_DISPLAY_ENV="TRUE"
-
-gcc d.c -lm -Wall -march=native -fopenmp
-
-time ./a.out > a.txt
-
-OPENMP DISPLAY ENVIRONMENT BEGIN
-  _OPENMP = '201511'
-  OMP_DYNAMIC = 'FALSE'
-  OMP_NESTED = 'FALSE'
-  OMP_NUM_THREADS = '8'
-  OMP_SCHEDULE = 'DYNAMIC'
-  OMP_PROC_BIND = 'FALSE'
-  OMP_PLACES = ''
-  OMP_STACKSIZE = '0'
-  OMP_WAIT_POLICY = 'PASSIVE'
-  OMP_THREAD_LIMIT = '4294967295'
-  OMP_MAX_ACTIVE_LEVELS = '2147483647'
-  OMP_CANCELLATION = 'FALSE'
-  OMP_DEFAULT_DEVICE = '0'
-  OMP_MAX_TASK_PRIORITY = '0'
-  OMP_DISPLAY_AFFINITY = 'FALSE'
-  OMP_AFFINITY_FORMAT = 'level %L thread %i affinity %A'
-OPENMP DISPLAY ENVIRONMENT END
-
-
-
-setup start
- end of setup 
-compute image FunctionType = 1 PlaneInversion = 0
-compute image FunctionType = 3 PlaneInversion = 0
-compute image FunctionType = 4 PlaneInversion = 0
-compute image FunctionType = 0 PlaneInversion = 0
-copy boundaries from S array to D array 
-copy boundaries from S array to D array 
-compute image FunctionType = 3 PlaneInversion = 0
-compute image FunctionType = 0 PlaneInversion = 0
-copy boundaries from S array to D array 
-compute image texture k = 0
-compute image texture k = 1
-compute image texture k = 2
-compute image texture k = 3
-compute image texture k = 4
-compute image texture k = 6
-copy boundaries from S array to D array 
-compute image texture k = 6
-copy boundaries from S array to D array 
-compute image texture k = 7
-copy boundaries from S array to D array 
-compute image FunctionType = 2 PlaneInversion = 0
-compute image FunctionType = 5 PlaneInversion = 0
-compute image FunctionType = 6 PlaneInversion = 0
-compute image DEM boundary
-compute image FunctionType = 8 PlaneInversion = 0
-compute image FunctionType = 7 PlaneInversion = 0
-compute image FunctionType = 9 PlaneInversion = 0
-compute image DEM boundary
-compute image FunctionType = 1 PlaneInversion = 0
-compute image CheckOrientation
-compute image FunctionType = 1 PlaneInversion = 0
-compute image ShowWWindowOnZWindow
-compute image FunctionType = 1 PlaneInversion = 1
-compute image FunctionType = 3 PlaneInversion = 1
-compute image FunctionType = 3 PlaneInversion = 1
-compute image FunctionType = 0 PlaneInversion = 1
-copy boundaries from S array to D array 
-compute image FunctionType = 5 PlaneInversion = 1
-compute image FunctionType = 0 PlaneInversion = 1
-copy boundaries from S array to D array 
-compute image FunctionType = 8 PlaneInversion = 1
-compute image FunctionType = 7 PlaneInversion = 1
-compute image FunctionType = 9 PlaneInversion = 1
-compute image DEM boundary
-compute image FunctionType = 1 PlaneInversion = 1
-compute image ShowZWindowOnWWindow
- allways free memory (deallocate )  to avoid memory leaks 
-
-real	1m8,841s
-user	8m30,265s
-sys	0m2,063s
- 
-
-
-
-
-
-
-
-
-
-
-
 File de.pgm saved . Comment = fc(z)=z^2+ c where c = 0.350000 +0.000000*i ;  boundary using DEM 
 File bd.pgm saved . Comment = fc(z)=z^2+ c where c = 0.350000 +0.000000*i ;  Binary Decomposition 
 File bdb.pgm saved . Comment = fc(z)=z^2+ c where c = 0.350000 +0.000000*i ;  boundaries of BD 
@@ -115,6 +23,7 @@ File dld.pgm saved . Comment = fc(z)=z^2+ c where c = 0.350000 +0.000000*i ;  DL
 File np.pgm saved . Comment = fc(z)=z^2+ c where c = 0.350000 +0.000000*i ;  NP/J 
 File nd.pgm saved . Comment = fc(z)=z^2+ c where c = 0.350000 +0.000000*i ;  ND/J 
 File pot.pgm saved . Comment = fc(z)=z^2+ c where c = 0.350000 +0.000000*i ;  potential 
+File blend.pgm saved . Comment = fc(z)=z^2+ c where c = 0.350000 +0.000000*i ;  blend : potential ( step sqrt) and normal ( slope) 
 File defq.pgm saved . Comment = fc(z)=z^2+ c where c = 0.350000 +0.000000*i ;  boundary using DEM/J and first quadrant 
 File wonz.pgm saved . Comment = fc(z)=z^2+ c where c = 0.350000 +0.000000*i ;  W Window On Z Window 
 File dei.pgm saved . Comment = fc(z)=z^2+ c where c = 0.350000 +0.000000*i ;  boundary using DEM/J inv 
@@ -128,14 +37,15 @@ File lsci.pgm saved . Comment = fc(z)=z^2+ c where c = 0.350000 +0.000000*i ;  L
 File npi.pgm saved . Comment = fc(z)=z^2+ c where c = 0.350000 +0.000000*i ;  NP inverted 
 File ndi.pgm saved . Comment = fc(z)=z^2+ c where c = 0.350000 +0.000000*i ;  ND inverted 
 File pot_i.pgm saved . Comment = fc(z)=z^2+ c where c = 0.350000 +0.000000*i ;  potential inverted 
+File blend_i.pgm saved . Comment = fc(z)=z^2+ c where c = 0.350000 +0.000000*i ;  inverted blend : potential ( step sqrt) and normal ( slope) 
 File zonw.pgm saved . Comment = fc(z)=z^2+ c where c = 0.350000 +0.000000*i ;  Z Window On W Window 
-Number of pgm images = 39 
+Number of pgm images = 41 
 Numerical approximation of Julia set for fc(z)= z^2 + c 
 parameter c = 0.3500000000000000 +0.0000000000000000*i  
 Image Width = 2.800000 in world coordinate
-PixelWidth = 0.000560 
+PixelWidth = 0.000280 
 for DEM/J 
-Max distance from exterior to the boundary =  distanceMax = 0.0084016803360672 = 15.000000 pixels
+Max distance from exterior to the boundary =  distanceMax = 0.0084008400840084 = 30.000000 pixels
 
 Maximal number of iterations = iterMax = 1000000 
 For LSM/J 
@@ -144,3 +54,24 @@ Escape Radius = ER_LSM = 27.763998
 
 ratio of image  = 1.000000 ; it should be 1.000 ...
 gcc version: 9.3.0
+
+
+OPENMP DISPLAY ENVIRONMENT BEGIN
+  _OPENMP = '201511'
+  OMP_DYNAMIC = 'FALSE'
+  OMP_NESTED = 'FALSE'
+  OMP_NUM_THREADS = '8'
+  OMP_SCHEDULE = 'DYNAMIC'
+  OMP_PROC_BIND = 'FALSE'
+  OMP_PLACES = ''
+  OMP_STACKSIZE = '0'
+  OMP_WAIT_POLICY = 'PASSIVE'
+  OMP_THREAD_LIMIT = '4294967295'
+  OMP_MAX_ACTIVE_LEVELS = '2147483647'
+  OMP_CANCELLATION = 'FALSE'
+  OMP_DEFAULT_DEVICE = '0'
+  OMP_MAX_TASK_PRIORITY = '0'
+  OMP_DISPLAY_AFFINITY = 'FALSE'
+  OMP_AFFINITY_FORMAT = 'level %L thread %i affinity %A'
+OPENMP DISPLAY ENVIRONMENT END
+

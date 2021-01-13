@@ -81,8 +81,7 @@ int NumberOfImages = 0;
 
 
 //FunctionType
-typedef enum  {LSM , DEM, Unknown, BD, MBD , SAC, DLD, 
-		ND, NP, POT
+typedef enum  {LSM , DEM, Unknown, BD, MBD , SAC, DLD, ND, NP, POT, Blend
 		
 		} FunctionTypeT; 
 // FunctionTypeT FunctionType;
@@ -100,7 +99,7 @@ static unsigned int iWidth;	// horizontal dimension of array
 static unsigned int iyMin = 0;	// Indexes of array starts from 0 not 1
 static unsigned int iyMax;	//
 
-static unsigned int iHeight = 5000;	//  
+static unsigned int iHeight = 10000;	//  
 // The size of array has to be a positive constant integer 
 static unsigned int iSize;	// = iWidth*iHeight; 
 
@@ -1622,6 +1621,55 @@ unsigned char ComputeColorOfPOT(complex double z){
  
 }
 
+double GiveSmoothEscapeTime(complex double z){
+
+
+	int nMax = iterMax_LSM;
+	double cabsz;
+	int n;
+
+  	for (n=0; n < nMax; n++){ //forward iteration
+		cabsz = cabs(z);
+    		if (cabsz > ER_LSM) break; // esacping
+    		//if (cabsz< PixelWidth) break; // fails into finite attractor = interior, but not for disconnected Julia sets, then critical point and its preimages  !!!!
+  		z = z*z +c ; /* forward iteration : complex quadratic polynomial */ 
+  	}
+  	
+  	//float sn = n - log2(log2(dot(z,z))) + 4.0;  // equivalent optimized smooth iteration count
+  	
+  	double sn = ER_LSM/cabsz;
+  	//n- log2(log2(cdot(z,z))) + 4.0; 
+  	//sn = sn / nMax; // map to [0,1] range
+  	
+	return sn;
+
+}
+
+
+
+// 
+unsigned char ComputeColorOfBlend(complex double z){
+
+	
+	
+	
+	double SET = GiveSmoothEscapeTime(z);
+	SET = sqrt(SET);
+	SET = 1.0 - SET;
+	// 
+	double ColorSET = SET*255;
+	
+	//
+	double ColorNP = ComputeColorOfNP(z);
+		
+	unsigned char iColor = (ColorSET+ ColorNP)/ 2.0; // average blend mode
+	
+	return iColor;   
+  
+ 
+}
+
+
 
 /*
 int local_setup(int PlaneInversion){
@@ -1670,6 +1718,8 @@ unsigned char ComputeColor(FunctionTypeT FunctionType, complex double z){
 		case NP : {iColor = ComputeColorOfNP(z); break;}
 		
 		case POT : {iColor = ComputeColorOfPOT(z); break;}
+		
+		case Blend : {iColor = ComputeColorOfBlend(z); break;}
 		
 	
 		default: {}
@@ -1735,6 +1785,36 @@ int DrawImage (FunctionTypeT FunctionType, int PlaneInversion, unsigned char A[]
 
  
 
+ 
+int Test()
+{
+  	unsigned int ix, iy;		// pixel coordinate 
+  	complex double z;
+  	double SET;
+  	int ET;
+  	
+  	//local_setup(PlaneInversion);
+
+  	fprintf(stderr, "test\n");
+ 	// for all pixels of image 
+	ix = 0;
+  	for (iy = iyMin; iy <= iyMax; ++iy){
+    		z = GiveZ(ix,iy);
+    		ET = GiveEscapeTime(z);
+    		SET = GiveSmoothEscapeTime(z);
+    		printf(" %d \t %d \t %f \n", iy, ET, SET);		 
+    		ix = ix +1;
+      				//  
+  }
+
+  return 0;
+}
+
+  
+ 
+ 
+ 
+ 
  
  
 // *******************************************************************************************
@@ -2056,6 +2136,14 @@ int main () {
   DrawImageOfDEMJ_boundary(data, PlaneInversion, 255);
   SaveArray2PGMFile (data, "pot", "potential"); // name of the file is name.png 
   
+  DrawImage(Blend, PlaneInversion, data);
+  //DrawImageOfDEMJ_boundary(data, PlaneInversion, 255);
+  SaveArray2PGMFile (data, "blend", "blend : potential ( step sqrt) and normal ( slope)"); // name of the file is name.png 
+  
+  
+  
+  
+  
   
   // test image
   DrawImage(DEM, PlaneInversion, data);
@@ -2125,11 +2213,17 @@ int main () {
   DrawImageOfDEMJ_boundary(data, PlaneInversion, 255);
   SaveArray2PGMFile (data, "pot_i", "potential inverted"); // name of the file is name.png 
   
+  
+  DrawImage(Blend, PlaneInversion, data);
+  //DrawImageOfDEMJ_boundary(data, PlaneInversion, 255);
+  SaveArray2PGMFile (data, "blend_i", "inverted blend : potential ( step sqrt) and normal ( slope)"); // name of the file is name.png 
+  
+  
   DrawImage(DEM, PlaneInversion, data); // w window
   ShowZWindowOnWWindow(data);
   SaveArray2PGMFile (data, "zonw", "Z Window On W Window");
   
-  
+  //Test();
   
   //
   end();
