@@ -55,7 +55,9 @@ with boundaries
 
 ### blended gradients
 
-[Description](https://github.com/adammaj1/Mandelbrot-set-with-blended-gradients)
+[Description](https://github.com/adammaj1/Mandelbrot-set-with-blended-gradients)  
+
+
 ![](./images/blend.png "blend of normal shading and smooth escape time") 
 
 ## Inverted plane  = w plane  = 1/z plane 
