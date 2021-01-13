@@ -53,6 +53,11 @@ with boundaries
 ![](./images/nd.png "ND + DEM") 
 
 
+### blended gradients
+
+[Description](https://github.com/adammaj1/Mandelbrot-set-with-blended-gradients)
+![](./images/blend.png "blend of normal shading and smooth escape time") 
+
 ## Inverted plane  = w plane  = 1/z plane 
 
 ![](./images/dei.png "boundary using DEM/J inv") 
@@ -67,6 +72,8 @@ with boundaries
 ### Normal shading
 ![](./images/npi.png "NP + DEM inverted") 
 ![](./images/ndi.png "ND + DEM inverted") 
+### blended gradients
+![](./images/blend_i.png " inverted blend of normal shading  and smooth escape time") 
 
 
 ## test images
@@ -82,7 +89,13 @@ with boundaries
 * [d.c ](./src/d.c) - c console program for creating pgm images
 * [i.c](./src/i.c) - c console program for testing functions from the main program (d.c file). Prints info about point z  
 * [g.sh](./src/g.sh) - bash script for conversion ( from pgm to png ) and resizing ( downscalling) using Image Magic
+* [Makefile](./src/Makefile)
 * [a.txt](./src/a.txt) - text output of d.c program
+
+to run:
+```
+make
+```
 
 # technical notes
 
