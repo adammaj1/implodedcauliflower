@@ -107,7 +107,9 @@ See als [FF](https://fractalforums.org/programming/11/how-many-different-ways-ar
 
 Githab:
 * [GitHub Flavored Markdown Spec](https://github.github.com/gfm/#raw-html)  
-* [](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet)
+* [Markdown-Cheatsheet](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet)
+* [stackoverflow question: how-to-show-math-equations-in-general-githubs-markdownnot-githubs-blog](https://stackoverflow.com/questions/11256433/how-to-show-math-equations-in-general-githubs-markdownnot-githubs-blog)
+
 
 
 GitLab uses:
