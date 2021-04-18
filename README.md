@@ -53,13 +53,6 @@ with boundaries
 ![](./images/nd.png "ND + DEM") 
 
 
-### blended gradients
-
-[Description](https://github.com/adammaj1/Mandelbrot-set-with-blended-gradients)  
-
-
-![](./images/blend.png "blend of normal shading and smooth escape time") 
-
 ## Inverted plane  = w plane  = 1/z plane 
 
 ![](./images/dei.png "boundary using DEM/J inv") 
@@ -74,8 +67,6 @@ with boundaries
 ### Normal shading
 ![](./images/npi.png "NP + DEM inverted") 
 ![](./images/ndi.png "ND + DEM inverted") 
-### blended gradients
-![](./images/blend_i.png " inverted blend of normal shading  and smooth escape time") 
 
 
 ## test images
@@ -91,13 +82,7 @@ with boundaries
 * [d.c ](./src/d.c) - c console program for creating pgm images
 * [i.c](./src/i.c) - c console program for testing functions from the main program (d.c file). Prints info about point z  
 * [g.sh](./src/g.sh) - bash script for conversion ( from pgm to png ) and resizing ( downscalling) using Image Magic
-* [Makefile](./src/Makefile)
 * [a.txt](./src/a.txt) - text output of d.c program
-
-to run:
-```
-make
-```
 
 # technical notes
 
@@ -119,6 +104,11 @@ See als [FF](https://fractalforums.org/programming/11/how-many-different-ways-ar
 
 
 ## Git
+
+Githab:
+* [GitHub Flavored Markdown Spec](https://github.github.com/gfm/#raw-html)  
+* [](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet)
+
 
 GitLab uses:
 * the Redcarpet Ruby library for [Markdown processing](https://gitlab.com/gitlab-org/gitlab-foss/blob/master/doc/user/markdown.md)
@@ -154,7 +144,22 @@ git mv -f
 
 ### repo
 
+For Github:  
 
+```git
+git init
+git add README.md
+git commit -m "first commit"
+git branch -M main
+git remote add origin git@github.com:adammaj1/implodedcauliflower.git
+git push -u origin main
+```
+
+
+
+
+
+For Gilab:   
 
 ```git
 cd existing_folder
@@ -166,7 +171,17 @@ git push -u origin master
 ```
 
 
-To clone repo
+To clone repo  
+
+
+From github:  
+```git
+git clone git@github.com:adammaj1/implodedcauliflower.git
+```
+
+
+
+From gitlab  
 
 ```git
 git clone git@gitlab.com:adammajewski/implodedcauliflower.git
@@ -174,5 +189,5 @@ git clone git@gitlab.com:adammajewski/implodedcauliflower.git
 
 
 
-Local repo : ~/Dokumenty/branched_ray/c/
+Local repo : ~/implodedcauliflower
 
